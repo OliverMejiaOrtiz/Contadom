@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% block title %}Ingresar Asiento Contable{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title mb-0">
+                <i class="material-icons align-middle me-2">note_add</i>
+                Nuevo Asiento Contable
+            </h2>
+        </div>
+        <div class="card-body">
+            <form id="asientoForm" method="POST">
+                {% csrf_token %}
+                
+                <!-- Encabezado del asiento -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha</label>
+                        <input type="date" class="form-control" name="fecha" required>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Glosa (Descripción)</label>
+                        <input type="text" class="form-control" name="glosa" required>
+                    </div>
+                </div>
+
+                <!-- Tabla de movimientos -->
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered" id="movimientosTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 45%">Cuenta</th>
+                                <th style="width: 25%">Debe</th>
+                                <th style="width: 25%">Haber</th>
+                                <th style="width: 5%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="movimientosBody">
+                            <tr class="movimiento-row">
+                                <td>
+                                    <select class="form-select cuenta-select" required>
+                                        <option value="">Seleccione una cuenta</option>
+                                        {% for cuenta in cuentas %}
+                                        <option value="{{ cuenta.id_cuenta }}">{{ cuenta.nombre_cuenta }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control debe-input" step="0.01" min="0">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control haber-input" step="0.01" min="0">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-danger btn-sm eliminar-fila">
+                                        <i class="material-icons">close</i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light">
+                                <td><strong>Totales</strong></td>
+                                <td class="text-end" id="totalDebe">0.00</td>
+                                <td class="text-end" id="totalHaber">0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="d-flex gap-2 mb-3">
+                    <button type="button" class="btn btn-success" id="agregarFila">
+                        <i class="material-icons align-middle me-1">add</i>
+                        Agregar línea
+                    </button>
+                </div>
+
+                <div id="mensajeBalance" class="alert alert-info">
+                    Ingrese los movimientos del asiento contable
+                </div>
+
+                <div class="card-footer bg-white px-0">
+                    <button type="submit" class="btn btn-primary" id="guardarAsiento" disabled>
+                        <i class="material-icons align-middle me-1">save</i>
+                        Guardar Asiento
+                    </button>
+                    <a href="{% url 'registros:listar_transacciones' %}" class="btn btn-outline-secondary">
+                        <i class="material-icons align-middle me-1">arrow_back</i>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos del DOM
+    const tbody = document.getElementById('movimientosBody');
+    const btnAgregar = document.getElementById('agregarFila');
+    const form = document.getElementById('asientoForm');
+    const btnGuardar = document.getElementById('guardarAsiento');
+    const mensajeBalance = document.getElementById('mensajeBalance');
+
+    // Función mejorada para agregar nueva fila
+    function agregarNuevaFila() {
+        // Crear un nuevo elemento TR
+        const nuevaFila = document.createElement('tr');
+        nuevaFila.className = 'movimiento-row';
+        
+        // Agregar el contenido HTML de la fila
+        nuevaFila.innerHTML = `
+            <td>
+                <select class="form-select cuenta-select" required>
+                    <option value="">Seleccione una cuenta</option>
+                    {% for cuenta in cuentas %}
+                    <option value="{{ cuenta.id_cuenta }}">{{ cuenta.nombre_cuenta }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <input type="number" class="form-control debe-input" step="0.01" min="0">
+            </td>
+            <td>
+                <input type="number" class="form-control haber-input" step="0.01" min="0">
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-danger btn-sm eliminar-fila">
+                    <i class="material-icons">close</i>
+                </button>
+            </td>
+        `;
+
+        // Agregar la nueva fila al tbody
+        tbody.appendChild(nuevaFila);
+
+        // Configurar eventos para la nueva fila
+        configurarEventosFila(nuevaFila);
+    }
+
+    // Configurar eventos para una fila
+    function configurarEventosFila(fila) {
+        const debeInput = fila.querySelector('.debe-input');
+        const haberInput = fila.querySelector('.haber-input');
+        const btnEliminar = fila.querySelector('.eliminar-fila');
+
+        // Evento para input debe
+        debeInput.addEventListener('input', function() {
+            if (this.value !== '') {
+                haberInput.value = '';
+            }
+            actualizarTotales();
+        });
+
+        // Evento para input haber
+        haberInput.addEventListener('input', function() {
+            if (this.value !== '') {
+                debeInput.value = '';
+            }
+            actualizarTotales();
+        });
+
+        // Evento para botón eliminar
+        btnEliminar.addEventListener('click', function() {
+            if (tbody.children.length > 1) {
+                fila.remove();
+                actualizarTotales();
+            }
+        });
+    }
+
+    // Función para actualizar totales
+    function actualizarTotales() {
+        let totalDebe = 0;
+        let totalHaber = 0;
+
+        // Calcular totales
+        tbody.querySelectorAll('.debe-input').forEach(input => {
+            totalDebe += parseFloat(input.value || 0);
+        });
+
+        tbody.querySelectorAll('.haber-input').forEach(input => {
+            totalHaber += parseFloat(input.value || 0);
+        });
+
+        // Actualizar display de totales
+        document.getElementById('totalDebe').textContent = totalDebe.toFixed(2);
+        document.getElementById('totalHaber').textContent = totalHaber.toFixed(2);
+
+        // Verificar balance
+        const balanced = Math.abs(totalDebe - totalHaber) < 0.01;
+        btnGuardar.disabled = !balanced;
+        
+        // Actualizar mensaje de balance
+        mensajeBalance.className = balanced ? 'alert alert-success' : 'alert alert-warning';
+        mensajeBalance.textContent = balanced ? 
+            '✓ El asiento está balanceado' : 
+            'El debe y el haber deben ser iguales';
+    }
+
+    // Agregar evento al botón de agregar fila
+    btnAgregar.addEventListener('click', agregarNuevaFila);
+
+    // Configurar eventos para la primera fila
+    configurarEventosFila(tbody.querySelector('.movimiento-row'));
+
+    // Manejar envío del formulario
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const detalles = [];
+        tbody.querySelectorAll('.movimiento-row').forEach(fila => {
+            const cuenta = fila.querySelector('.cuenta-select').value;
+            const debe = parseFloat(fila.querySelector('.debe-input').value || 0);
+            const haber = parseFloat(fila.querySelector('.haber-input').value || 0);
+            
+            if (cuenta && (debe || haber)) {
+                detalles.push({
+                    cuenta: cuenta,
+                    monto: debe || haber,
+                    es_debe: debe > 0
+                });
+            }
+        });
+
+        if (detalles.length === 0) {
+            alert('Debe ingresar al menos un movimiento');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('fecha', form.querySelector('[name="fecha"]').value);
+        formData.append('glosa', form.querySelector('[name="glosa"]').value);
+        formData.append('detalles', JSON.stringify(detalles));
+
+        // Enviar datos al servidor
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '{% url "registros:listar_transacciones" %}';
+            } else {
+                throw new Error('Error al guardar el asiento');
+            }
+        })
+        .catch(error => alert(error.message));
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Editar Cuenta{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="material-icons me-2">edit</i>
+                    <h2 class="card-title mb-0">Editar Cuenta</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            {{ form.as_p }}
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <a href="{% url 'registros:listar_cuentas' %}" class="btn btn-outline-secondary w-100">
+                                    <i class="material-icons align-middle me-2">arrow_back</i>
+                                    Cancelar
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="material-icons align-middle me-2">save</i>
+                                    Guardar Cambios
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>  
+        </div>
+    </div>
+</div>
+{% endblock %}

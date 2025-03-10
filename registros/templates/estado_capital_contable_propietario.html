@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Estado del Capital Contable del Propietario{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Estado del Capital Contable del Propietario</h1>
+    <form method="POST" action="" class="mb-5">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="mes" class="form-label">Selecciona el mes:</label>
+                <select id="mes" name="mes" class="form-select">
+                    <option value="">Seleccione el mes</option>
+                    {% for m in meses %}
+                    <option value="{{ m.0 }}" {% if m.0 == mes_seleccionado %}selected{% endif %}>{{ m.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="año" class="form-label">Selecciona el año:</label>
+                <select id="año" name="año" class="form-select">
+                    <option value="">Seleccione el año</option>
+                    {% for a in años %}
+                    <option value="{{ a.0 }}" {% if a.0 == año_seleccionado %}selected{% endif %}>{{ a.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Aceptar</button>
+            </div>
+        </div>
+    </form>
+
+    {% if cuentas_ingresos or cuentas_gastos %}
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-bordered table-hover table-striped align-middle text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th colspan="3">Estado del Capital Contable del Propietario - {{ ultimo_dia_registrado_mes }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-start"><strong>Capital, 1 de {{ mes }} de {{ año }}</strong></td>
+                    <td class="text-end">{{ capital_inicio_mes|floatformat:2 }}</td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <td class="text-start">Más: Inversiones realizadas por el propietario</td>
+                    <td class="text-end">{{ inversiones.saldo_acreedor|floatformat:2 }}</td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <td class="text-start">Utilidad neta para el mes</td>
+                    <td class="text-end">{{ utilidad_neta|floatformat:2 }}</td>
+                    <td></td>
+                </tr>
+
+                <tr class="table-secondary fw-bold">
+                    <td class="text-start">Total de Capital e Inversiones</td>
+                    <td class="text-end">{{ total_suma_utilidad_inversiones|floatformat:2 }}</td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <td class="text-start">Menos: Retiros del propietario</td>
+                    <td class="text-end">({{ retiros_propietario|floatformat:2 }})</td>
+                    <td></td>
+                </tr>
+
+                <tr class="table-success fw-bold">
+                    <td class="text-start">Capital al {{ ultimo_dia_registrado_mes }}</td>
+                    <td class="text-end">{{ capital_fin_mes|floatformat:2 }}</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center mt-4">
+        No hay datos disponibles para el mes y año seleccionados.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

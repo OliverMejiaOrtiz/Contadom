@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Estado de Situación Financiera{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <i class="material-icons me-2">account_balance</i>
+                <h2 class="card-title mb-0">Estado de Situación Financiera</h2>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-light text-dark">
+                    <i class="material-icons align-middle me-1">calendar_today</i>
+                    {% if anio and mes %}
+                    {{ mes }} {{ anio }}
+                    {% elif anio %}
+                    Todo el año {{ anio }}
+                    {% else %}
+                    Seleccione período
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Formulario de filtrado -->
+            <form method="POST" class="mb-4 p-3 bg-light rounded">
+                {% csrf_token %}
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="mes" class="form-label">
+                            <i class="material-icons align-middle me-1">event</i>
+                            Mes
+                        </label>
+                        <select name="mes" id="mes" class="form-select">
+                            <option value="">Seleccionar mes</option>
+                            {% for mes in meses %}
+                            <option value="{{ mes.0 }}">{{ mes.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="anio" class="form-label">
+                            <i class="material-icons align-middle me-1">date_range</i>
+                            Año
+                        </label>
+                        <input type="number" name="anio" id="anio" class="form-control" placeholder="YYYY">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="material-icons align-middle me-1">search</i>
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabla de Activos -->
+            <h3 class="mt-4">Activos</h3>
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-start">Cuenta</th>
+                        <th class="text-end">Saldo (S/)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cuenta, saldo in activos.items %}
+                    <tr>
+                        <td>{{ cuenta }}</td>
+                        <td class="text-end">DOP {{ saldo|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="fw-bold table-info">
+                        <td>Total Activo</td>
+                        <td class="text-end">DOP {{ total_activos|floatformat:2 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Tabla de Pasivos y Patrimonio -->
+            <h3 class="mt-4">Pasivo y Patrimonio</h3>
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-start">Cuenta</th>
+                        <th class="text-end">Saldo (S/)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cuenta, saldo in pasivos.items %}
+                    <tr>
+                        <td>{{ cuenta }}</td>
+                        <td class="text-end">DOP {{ saldo|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="fw-bold table-light">
+                        <td>Total Pasivo</td>
+                        <td class="text-end">DOP {{ total_pasivos|floatformat:2 }}</td>
+                    </tr>
+
+                    {% for cuenta, saldo in patrimonio.items %}
+                    <tr>
+                        <td>{{ cuenta }}</td>
+                        <td class="text-end">DOP {{ saldo|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="fw-bold table-light">
+                        <td>Total Patrimonio</td>
+                        <td class="text-end">DOP {{ total_patrimonio|floatformat:2 }}</td>
+                    </tr>
+
+                    <tr class="fw-bold table-info">
+                        <td>Total Pasivo y Patrimonio</td>
+                        <td class="text-end">DOP {{ total_pasivos_y_patrimonio|floatformat:2 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

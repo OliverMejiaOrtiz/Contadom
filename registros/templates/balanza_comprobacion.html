@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Balanza de Comprobación{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <i class="material-icons me-2">account_balance</i>
+            <h2 class="card-title mb-0">Balanza de Comprobación</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="" class="mb-4">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-5 mb-3">
+                        <label for="mes" class="form-label">Selecciona el mes:</label>
+                        <select id="mes" name="mes" class="form-select" required>
+                            <option value="">Seleccione el mes</option>
+                            {% for m in meses %}
+                            <option value="{{ m.0 }}" {% if m.0 == mes_seleccionado %}selected{% endif %}>{{ m.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-5 mb-3">
+                        <label for="año" class="form-label">Selecciona el año:</label>
+                        <select id="año" name="año" class="form-select" required>
+                            <option value="">Seleccione el año</option>
+                            {% for a in años %}
+                            <option value="{{ a.0 }}" {% if a.0 == año_seleccionado %}selected{% endif %}>{{ a.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="material-icons align-middle me-1">search</i>
+                            Consultar
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {% if cuentas_saldos %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background-color: #f8f9fa;">
+                        <tr>
+                            <th style="width: 40%">Cuenta</th>
+                            <th class="text-end" style="width: 30%">Debe (S/)</th>
+                            <th class="text-end" style="width: 30%">Haber (S/)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for nombre_cuenta, saldos in cuentas_saldos.items %}
+                        <tr>
+                            <td>{{ nombre_cuenta }}</td>
+                            <td class="text-end">
+                                {% if saldos.saldo_deudor > 0 %}
+                                    {{ saldos.saldo_deudor|floatformat:2 }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if saldos.saldo_acreedor > 0 %}
+                                    {{ saldos.saldo_acreedor|floatformat:2 }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-secondary fw-bold">
+                            <td>Sumas Totales</td>
+                            <td class="text-end">{{ total_debe|floatformat:2 }}</td>
+                            <td class="text-end">{{ total_haber|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="material-icons text-muted" style="font-size: 3rem;">info</i>
+                <p class="text-muted mt-2">No hay datos disponibles para el período seleccionado.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

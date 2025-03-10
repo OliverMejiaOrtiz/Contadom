@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Crear Cuenta{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <i class="material-icons me-2">add_circle</i>
+            <h2 class="card-title mb-0">Crear Cuenta</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{% url 'registros:crear_cuenta' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    {{ form.as_p }}
+                </div>
+                <div class="row mt-4">
+                    <div class="col-6">
+                        <a href="{% url 'registros:listar_cuentas' %}" class="btn btn-outline-secondary w-100">
+                            <i class="material-icons align-middle me-2">arrow_back</i>
+                            Cancelar
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="material-icons align-middle me-2">save</i>
+                            Crear Cuenta
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

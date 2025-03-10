@@ -1,0 +1,495 @@
+{% extends 'base.html' %}
+{% block title %}Listar Cuentas{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <i class="material-icons me-2">account_balance_wallet</i>
+                <h2 class="card-title mb-0">Lista de Cuentas</h2>
+            </div>
+            <a href="{% url 'registros:crear_cuenta' %}" class="btn btn-light">
+                <i class="material-icons align-middle me-2">add_circle</i>
+                Crear Nueva Cuenta
+            </a>
+        </div>
+        <div class="card-body">
+            {% if error %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="material-icons align-middle me-2">error</i>
+                {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            {% if mensaje %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="material-icons align-middle me-2">info</i>
+                {{ mensaje }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            <!-- Buscador único -->
+            <div class="mb-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="material-icons">search</i></span>
+                    <input type="text" id="buscador" class="form-control" placeholder="Buscar cuenta por ID, nombre o categoría...">
+                </div>
+            </div>
+
+            <!-- Tabla adaptativa para móviles -->
+            <div id="vista-escritorio" class="d-none d-md-block">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="tabla-cuentas">
+                        <thead style="background-color: #f8f9fa;">
+                            <tr>
+                                <th class="text-center" style="width: 10%">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <span>ID</span>
+                                        <button class="btn btn-sm ms-1" onclick="ordenarTabla(0)">
+                                            <i class="material-icons small">sort</i>
+                                        </button>
+                                    </div>
+                                </th>
+                                <th style="width: 40%">
+                                    <div class="d-flex align-items-center">
+                                        <span>Nombre</span>
+                                        <button class="btn btn-sm ms-1" onclick="ordenarTabla(1)">
+                                            <i class="material-icons small">sort</i>
+                                        </button>
+                                    </div>
+                                </th>
+                                <th style="width: 30%">
+                                    <div class="d-flex align-items-center">
+                                        <span>Categoría</span>
+                                        <button class="btn btn-sm ms-1" onclick="ordenarTabla(2)">
+                                            <i class="material-icons small">sort</i>
+                                        </button>
+                                    </div>
+                                </th>
+                                <th class="text-center" style="width: 20%">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cuenta in cuentas %}
+                            <tr>
+                                <td class="text-center">{{ cuenta.id_cuenta }}</td>
+                                <td>{{ cuenta.nombre_cuenta }}</td>
+                                <td>{{ cuenta.id_categoria.nombre_categoria }}</td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a href="{% url 'registros:editar_cuenta' id_cuenta=cuenta.id_cuenta %}" 
+                                           class="btn btn-warning btn-sm" title="Editar">
+                                           <i class="material-icons">edit</i>
+                                        </a>
+                                        {% if cuenta.tiene_movimientos %}
+                                        <button type="button" class="btn btn-secondary btn-sm ms-2" title="No se puede eliminar" 
+                                                onclick="mostrarAlerta('{{ cuenta.nombre_cuenta }}')">
+                                            <i class="material-icons">lock</i>
+                                        </button>
+                                        {% else %}
+                                        <a href="{% url 'registros:eliminar_cuenta' id_cuenta=cuenta.id_cuenta %}" 
+                                           class="btn btn-danger btn-sm ms-2" title="Eliminar">
+                                           <i class="material-icons">delete</i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4">
+                                    <i class="material-icons text-muted" style="font-size: 3rem;">inbox</i>
+                                    <p class="text-muted mt-2">No hay cuentas registradas.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vista responsiva para móviles -->
+            <div id="vista-movil" class="d-md-none">
+                <div id="tarjetas-cuentas">
+                    {% for cuenta in cuentas %}
+                    <div class="card mb-3 cuenta-tarjeta">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title">{{ cuenta.nombre_cuenta }}</h5>
+                                <span class="badge bg-secondary">ID: {{ cuenta.id_cuenta }}</span>
+                            </div>
+                            <p class="card-text"><strong>Categoría:</strong> {{ cuenta.id_categoria.nombre_categoria }}</p>
+                            <div class="d-flex justify-content-end mt-3">
+                                <a href="{% url 'registros:editar_cuenta' id_cuenta=cuenta.id_cuenta %}" 
+                                   class="btn btn-warning btn-sm me-2" title="Editar">
+                                   <i class="material-icons">edit</i> Editar
+                                </a>
+                                {% if cuenta.tiene_movimientos %}
+                                <button type="button" class="btn btn-secondary btn-sm" title="No se puede eliminar"
+                                        onclick="mostrarAlerta('{{ cuenta.nombre_cuenta }}')">
+                                    <i class="material-icons">lock</i> Bloqueada
+                                </button>
+                                {% else %}
+                                <a href="{% url 'registros:eliminar_cuenta' id_cuenta=cuenta.id_cuenta %}" 
+                                   class="btn btn-danger btn-sm" title="Eliminar">
+                                   <i class="material-icons">delete</i> Eliminar
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="material-icons text-muted" style="font-size: 3rem;">inbox</i>
+                        <p class="text-muted mt-2">No hay cuentas registradas.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Alerta de cuenta con movimientos -->
+            <div class="modal fade" id="alertaModal" tabindex="-1" aria-labelledby="alertaModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title" id="alertaModalLabel">Cuenta con movimientos</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex align-items-center">
+                                <i class="material-icons text-warning me-3" style="font-size: 2.5rem;">warning</i>
+                                <p class="mb-0">La cuenta <strong id="nombreCuenta"></strong> no puede ser eliminada porque tiene movimientos asociados.</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendido</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información de filas visibles -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap mt-3">
+                <div class="mb-2 mb-md-0">
+                    <span id="conteo-filas" class="text-muted">Mostrando <span id="filas-visibles">0</span> de <span id="filas-totales">0</span> cuentas</span>
+                </div>
+                
+                <div class="d-flex align-items-center">
+                    <label for="registros-por-pagina" class="me-2">Mostrar:</label>
+                    <select id="registros-por-pagina" class="form-select form-select-sm" style="width: auto;">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <!-- Paginación -->
+            <nav aria-label="Paginación de cuentas">
+                <ul class="pagination mb-0 justify-content-center flex-wrap" id="paginacion-custom">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" id="boton-anterior">
+                            <i class="material-icons small">chevron_left</i> Anterior
+                        </a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" id="boton-siguiente">
+                            Siguiente <i class="material-icons small">chevron_right</i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Variables para paginación personalizada
+    let filasTabla = [];
+    let tarjetasMovil = [];
+    let elementosVisibles = [];
+    let paginaActual = 1;
+    let registrosPorPagina = 10;
+    let criterioOrden = { columna: -1, ascendente: true };
+    let modal;
+    
+    // Inicializar cuando el DOM esté cargado
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar modal
+        modal = new bootstrap.Modal(document.getElementById('alertaModal'));
+        
+        // Obtener elementos de la tabla y tarjetas
+        filasTabla = Array.from(document.querySelectorAll('#tabla-cuentas tbody tr'));
+        tarjetasMovil = Array.from(document.querySelectorAll('.cuenta-tarjeta'));
+        
+        // Determinar qué elementos usar según vista
+        actualizarElementosVisibles();
+        
+        // Inicializar el conteo
+        document.getElementById('filas-totales').textContent = elementosVisibles.length;
+        
+        // Establecer registros por página
+        registrosPorPagina = parseInt(document.getElementById('registros-por-pagina').value);
+        
+        // Actualizar la visualización
+        actualizarTabla();
+        
+        // Listener para cambio en registros por página
+        document.getElementById('registros-por-pagina').addEventListener('change', function() {
+            registrosPorPagina = parseInt(this.value);
+            paginaActual = 1; // Reiniciar a la primera página
+            actualizarTabla();
+        });
+        
+        // Listeners para botones de paginación
+        document.getElementById('boton-anterior').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (paginaActual > 1) {
+                paginaActual--;
+                actualizarTabla();
+            }
+        });
+        
+        document.getElementById('boton-siguiente').addEventListener('click', function(e) {
+            e.preventDefault();
+            const totalPaginas = Math.ceil(elementosVisibles.length / registrosPorPagina);
+            if (paginaActual < totalPaginas) {
+                paginaActual++;
+                actualizarTabla();
+            }
+        });
+        
+        // Listener para el buscador único
+        document.getElementById('buscador').addEventListener('input', filtrarElementos);
+        
+        // Listener para cambios de tamaño de ventana
+        window.addEventListener('resize', function() {
+            actualizarElementosVisibles();
+            actualizarTabla();
+        });
+    });
+    
+    // Mostrar alerta para cuentas con movimientos
+    function mostrarAlerta(nombreCuenta) {
+        document.getElementById('nombreCuenta').textContent = nombreCuenta;
+        modal.show();
+    }
+    
+    // Determinar qué elementos son visibles según el tamaño de pantalla
+    function actualizarElementosVisibles() {
+        if (window.innerWidth >= 768) {
+            // Vista de escritorio
+            elementosVisibles = [...filasTabla];
+        } else {
+            // Vista móvil
+            elementosVisibles = [...tarjetasMovil];
+        }
+    }
+    
+    // Función para filtrar elementos según el buscador
+    function filtrarElementos() {
+        const filtro = document.getElementById('buscador').value.toLowerCase();
+        
+        if (window.innerWidth >= 768) {
+            // Vista de escritorio - filtrar filas
+            elementosVisibles = filasTabla.filter(fila => {
+                const texto = fila.textContent.toLowerCase();
+                return texto.includes(filtro);
+            });
+        } else {
+            // Vista móvil - filtrar tarjetas
+            elementosVisibles = tarjetasMovil.filter(tarjeta => {
+                const texto = tarjeta.textContent.toLowerCase();
+                return texto.includes(filtro);
+            });
+        }
+        
+        // Reiniciar a primera página al filtrar
+        paginaActual = 1;
+        
+        // Actualizar tabla
+        actualizarTabla();
+    }
+    
+    // Función para actualizar la visualización
+    function actualizarTabla() {
+        // Aplicar ordenamiento si está definido (solo para vista escritorio)
+        if (criterioOrden.columna >= 0 && window.innerWidth >= 768) {
+            ordenarFilasVisibles();
+        }
+        
+        // Calcular índices para la página actual
+        const inicio = (paginaActual - 1) * registrosPorPagina;
+        const fin = Math.min(inicio + registrosPorPagina, elementosVisibles.length);
+        const elementosPagina = elementosVisibles.slice(inicio, fin);
+        
+        if (window.innerWidth >= 768) {
+            // Vista de escritorio
+            filasTabla.forEach(fila => {
+                fila.style.display = 'none';
+            });
+            
+            elementosPagina.forEach(fila => {
+                fila.style.display = '';
+            });
+        } else {
+            // Vista móvil
+            tarjetasMovil.forEach(tarjeta => {
+                tarjeta.style.display = 'none';
+            });
+            
+            elementosPagina.forEach(tarjeta => {
+                tarjeta.style.display = '';
+            });
+        }
+        
+        // Actualizar contadores
+        document.getElementById('filas-visibles').textContent = elementosVisibles.length;
+        document.getElementById('filas-totales').textContent = filasTabla.length > 0 ? filasTabla.length : tarjetasMovil.length;
+        
+        // Actualizar paginación
+        actualizarPaginacion();
+    }
+    
+    // Función para actualizar la paginación
+    function actualizarPaginacion() {
+        const totalPaginas = Math.max(1, Math.ceil(elementosVisibles.length / registrosPorPagina));
+        const paginacion = document.getElementById('paginacion-custom');
+        
+        // Limpiar paginación actual
+        while (paginacion.childElementCount > 2) {
+            paginacion.removeChild(paginacion.children[1]);
+        }
+        
+        // Crear números de página
+        if (totalPaginas <= 5) {
+            // Mostrar todas las páginas si son pocas
+            for (let i = 1; i <= totalPaginas; i++) {
+                const esActiva = i === paginaActual;
+                insertarNumeroPagina(i, esActiva, i);
+            }
+        } else {
+            // Mostrar paginación con ellipsis
+            if (paginaActual <= 3) {
+                // Cerca del inicio
+                for (let i = 1; i <= 3; i++) {
+                    insertarNumeroPagina(i, i === paginaActual, i);
+                }
+                insertarEllipsis();
+                insertarNumeroPagina(totalPaginas, false, totalPaginas);
+            } else if (paginaActual >= totalPaginas - 2) {
+                // Cerca del final
+                insertarNumeroPagina(1, false, 1);
+                insertarEllipsis();
+                for (let i = totalPaginas - 2; i <= totalPaginas; i++) {
+                    insertarNumeroPagina(i, i === paginaActual, i);
+                }
+            } else {
+                // En medio
+                insertarNumeroPagina(1, false, 1);
+                insertarEllipsis();
+                insertarNumeroPagina(paginaActual, true, paginaActual);
+                insertarEllipsis();
+                insertarNumeroPagina(totalPaginas, false, totalPaginas);
+            }
+        }
+        
+        // Actualizar estado de botones anterior/siguiente
+        const botonAnterior = document.getElementById('boton-anterior').parentNode;
+        const botonSiguiente = document.getElementById('boton-siguiente').parentNode;
+        
+        if (paginaActual === 1) {
+            botonAnterior.classList.add('disabled');
+        } else {
+            botonAnterior.classList.remove('disabled');
+        }
+        
+        if (paginaActual === totalPaginas) {
+            botonSiguiente.classList.add('disabled');
+        } else {
+            botonSiguiente.classList.remove('disabled');
+        }
+    }
+    
+    // Función para insertar un número de página en la paginación
+    function insertarNumeroPagina(numero, activo, valor) {
+        const paginacion = document.getElementById('paginacion-custom');
+        const li = document.createElement('li');
+        li.className = 'page-item' + (activo ? ' active' : '');
+        
+        const a = document.createElement('a');
+        a.className = 'page-link';
+        a.href = '#';
+        a.textContent = numero;
+        a.dataset.pagina = valor;
+        
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            paginaActual = parseInt(this.dataset.pagina);
+            actualizarTabla();
+        });
+        
+        li.appendChild(a);
+        paginacion.insertBefore(li, document.getElementById('boton-siguiente').parentNode);
+    }
+    
+    // Función para insertar ellipsis en la paginación
+    function insertarEllipsis() {
+        const paginacion = document.getElementById('paginacion-custom');
+        const li = document.createElement('li');
+        li.className = 'page-item disabled';
+        
+        const a = document.createElement('a');
+        a.className = 'page-link';
+        a.href = '#';
+        a.textContent = '...';
+        
+        li.appendChild(a);
+        paginacion.insertBefore(li, document.getElementById('boton-siguiente').parentNode);
+    }
+    
+    // Función para ordenar la tabla por columna
+    function ordenarTabla(columna) {
+        // Si se hace clic en la misma columna, invertir el orden
+        if (criterioOrden.columna === columna) {
+            criterioOrden.ascendente = !criterioOrden.ascendente;
+        } else {
+            criterioOrden.columna = columna;
+            criterioOrden.ascendente = true;
+        }
+        
+        actualizarTabla();
+    }
+    
+    // Función para ordenar las filas visibles según el criterio actual
+    function ordenarFilasVisibles() {
+        const columna = criterioOrden.columna;
+        const ascendente = criterioOrden.ascendente;
+        
+        elementosVisibles.sort((a, b) => {
+            const valorA = a.querySelectorAll('td')[columna].textContent.trim();
+            const valorB = b.querySelectorAll('td')[columna].textContent.trim();
+            
+            // Intentar ordenar como números si es posible
+            const numA = parseFloat(valorA);
+            const numB = parseFloat(valorB);
+            
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return ascendente ? numA - numB : numB - numA;
+            }
+            
+            // Ordenar como texto
+            return ascendente 
+                ? valorA.localeCompare(valorB) 
+                : valorB.localeCompare(valorA);
+        });
+    }
+</script>
+{% endblock %}

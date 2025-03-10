@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Configuraciones{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+            <h2><i class="material-icons">settings</i> Configuraciones de Usuario</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" class="mt-3">
+                {% csrf_token %}
+                <div class="form-group mb-4">
+                    <label for="menu_orientation" class="form-label">Orientación del Menú:</label>
+                    <select name="menu_orientation" id="menu_orientation" class="form-select">
+                        <option value="horizontal" {% if request.session.menu_orientation == 'horizontal' %}selected{% endif %}>Horizontal</option>
+                        <option value="vertical" {% if request.session.menu_orientation == 'vertical' %}selected{% endif %}>Vertical</option>
+                    </select>
+                </div>
+                <div class="form-group mb-4">
+                    <label for="theme_color" class="form-label">Color del Tema:</label>
+                    <input type="color" name="theme_color" id="theme_color" class="form-control form-control-color" value="{{ request.session.theme_color|default:'#ffffff' }}">
+                </div>
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="material-icons">save</i> Guardar Configuración
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilo para el botón de guardar configuración */
+    .btn-success {
+        transition: background-color 0.3s, box-shadow 0.3s;
+    }
+
+    .btn-success:hover {
+        background-color: #28a745d1;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Estilo adicional para el selector de color */
+    .form-control-color {
+        height: 45px;
+        width: 60px;
+        padding: 0;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}

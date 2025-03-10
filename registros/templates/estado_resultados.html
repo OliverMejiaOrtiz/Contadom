@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block title %}Estado de Resultados{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <i class="material-icons me-2">assessment</i>
+                <h2 class="card-title mb-0">Estado de Resultados</h2>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-light text-dark">
+                    <i class="material-icons align-middle me-1" style="font-size: 1rem;">calendar_today</i>
+                    {% if mes_seleccionado and año_seleccionado %}
+                    {{ mes_seleccionado }} {{ año_seleccionado }}
+                    {% else %}
+                    Seleccione período
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Formulario de filtrado -->
+            <form method="POST" class="mb-4 p-3 bg-light rounded">
+                {% csrf_token %}
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="mes" class="form-label">
+                            <i class="material-icons align-middle me-1">event</i>
+                            Mes
+                        </label>
+                        <select name="mes" id="mes" class="form-select">
+                            <option value="">Seleccionar mes</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="anio" class="form-label">
+                            <i class="material-icons align-middle me-1">date_range</i>
+                            Año
+                        </label>
+                        <input type="number" name="anio" id="anio" class="form-control" placeholder="YYYY">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="material-icons align-middle me-1">search</i>
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabla del Estado de Resultados -->
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center bg-primary text-white py-3" colspan="2">
+                                <h4 class="mb-0">Estado de Resultados</h4>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Sección de Ingresos -->
+                        <tr class="table-info">
+                            <td colspan="2" class="fw-bold">
+                                <i class="material-icons align-middle me-1">trending_up</i>
+                                Ingresos
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">Ventas netas</td>
+                            <td class="text-end pe-4">DOP {{ ventas_netas|floatformat:2|default:"0.00" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">(-) Costo de ventas</td>
+                            <td class="text-end text-danger pe-4">DOP {{ costo_ventas|default:"0.00" }}</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td class="ps-4 fw-bold">Utilidad bruta</td>
+                            <td class="text-end fw-bold pe-4">DOP {{ utilidad|default:"0.00" }}</td>
+                        </tr>
+
+                        <!-- Gastos Operativos -->
+                        <tr class="table-info">
+                            <td colspan="2" class="fw-bold">
+                                <i class="material-icons align-middle me-1">trending_down</i>
+                                Gastos Operativos
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">Gastos administrativos</td>
+                            <td class="text-end text-danger pe-4">DOP {{ gastos_administrativos|default:"0.00" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">Gastos de ventas</td>
+                            <td class="text-end text-danger pe-4">DOP {{ gastos_ventas|default:"0.00" }}</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td class="ps-4 fw-bold">Utilidad operativa</td>
+                            <td class="text-end fw-bold pe-4">DOP {{ utilidad_operacion|default:"0.00" }}</td>
+                        </tr>
+
+                        <!-- Otros Ingresos y Gastos -->
+                        <tr class="table-info">
+                            <td colspan="2" class="fw-bold">
+                                <i class="material-icons align-middle me-1">account_balance_wallet</i>
+                                Otros Ingresos y Gastos
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">Gastos financieros</td>
+                            <td class="text-end text-danger pe-4">DOP {{ gastos_financieros|default:"0.00" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">Otros gastos</td>
+                            <td class="text-end text-danger pe-4">DOP {{ otros_gastos|default:"0.00" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">Otros ingresos</td>
+                            <td class="text-end text-success pe-4">DOP {{ otros_ingresos|default:"0.00" }}</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td class="ps-4 fw-bold">Utilidad antes de impuestos</td>
+                            <td class="text-end fw-bold pe-4">DOP {{ utilidad_antes_impuestos|default:"0.00" }}</td>
+                        </tr>
+
+                        <!-- Impuestos -->
+                        <tr>
+                            <td class="ps-4">Impuestos (27%)</td>
+                            <td class="text-end text-danger pe-4">DOP {{ impuestos|default:"0.00" }}</td>
+                        </tr>
+
+                        <!-- Resultado Final -->
+                        <tr class="table-success fw-bold">
+                            <td>
+                                <i class="material-icons align-middle me-1">done_all</i>
+                                UTILIDAD NETA DEL EJERCICIO
+                            </td>
+                            <td class="text-end h5 pe-4">DOP {{ utilidad_neta|floatformat:2|default:"0.00" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<div class="mt-4">
+    <h4>Información de Depuración</h4>
+    <pre>
+        {{ debug_info|safe }}
+    </pre>
+</div>
+
+
+{% block styles %}
+<style>
+    .table {
+        box-shadow: var(--card-shadow);
+        margin-bottom: 0;
+    }
+
+    .table td,
+    .table th {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    .table-info {
+        background-color: rgba(0, 123, 255, 0.1) !important;
+    }
+
+    .table-success {
+        background-color: rgba(40, 167, 69, 0.1) !important;
+    }
+
+    .badge {
+        font-size: 0.9rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+    }
+
+    .card {
+        border: none;
+    }
+</style>
+{% endblock %}

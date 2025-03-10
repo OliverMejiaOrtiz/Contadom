@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Estado del Flujo de Efectivo{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Estado del Flujo de Efectivo</h1>
+    <form method="POST" action="" class="mb-5">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="mes" class="form-label">Selecciona el mes:</label>
+                <select id="mes" name="mes" class="form-select">
+                    <option value="">Seleccione el mes</option>
+                    {% for m in meses %}
+                    <option value="{{ m.0 }}" {% if m.0 == mes_seleccionado %}selected{% endif %}>{{ m.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="año" class="form-label">Selecciona el año:</label>
+                <select id="año" name="año" class="form-select">
+                    <option value="">Seleccione el año</option>
+                    {% for a in años %}
+                    <option value="{{ a.0 }}" {% if a.0 == año_seleccionado %}selected{% endif %}>{{ a.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Aceptar</button>
+            </div>
+        </div>
+    </form>
+
+    {% if cuentas_cargo_abono %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th colspan="3" class="text-center">Estado del flujo de efectivo - {{ fecha_ultima_transaccion|date:"F Y" }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Actividades Operativas -->
+                <tr class="table-primary">
+                    <td colspan="3"><strong>Flujos de efectivo provenientes de actividades en operación</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Entradas:</strong></td>
+                    <td colspan="2"></td>
+                </tr>
+                <tr>
+                    <td>Cobros a los clientes</td>
+                    <td colspan="2" class="text-end">{{ cobro_clientes|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Pagos:</strong></td>
+                    <td colspan="2"></td>
+                </tr>
+                <tr>
+                    <td>A proveedores</td>
+                    <td class="text-end">({{ pago_proveedores|floatformat:2 }})</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>A empleados</td>
+                    <td class="text-end">({{ pago_empleados|floatformat:2 }})</td>
+                    <td></td>
+                </tr>
+                <tr class="fw-bold">
+                    <td>Total Pagos</td>
+                    <td class="text-end">({{ pago_total|floatformat:2 }})</td>
+                    <td></td>
+                </tr>
+                <tr class="table-success fw-bold">
+                    <td>Efectivo neto proporcionado por actividades en operación</td>
+                    <td colspan="2" class="text-end">{{ efectivo_neto_actividades_operacion|floatformat:2 }}</td>
+                </tr>
+
+                <!-- Actividades de Inversión -->
+                <tr class="table-primary">
+                    <td colspan="3"><strong>Flujos de efectivo de las actividades de inversión</strong></td>
+                </tr>
+                <tr>
+                    <td>Adquisición de terreno</td>
+                    <td class="text-end">({{ adquisicion_terreno|floatformat:2 }})</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Venta de terreno</td>
+                    <td class="text-end">{{ venta_terreno|floatformat:2 }}</td>
+                    <td></td>
+                </tr>
+                <tr class="table-warning fw-bold">
+                    <td>Efectivo neto usado en las actividades de inversión</td>
+                    <td colspan="2" class="text-end">{{ efectivo_neto_inversion|floatformat:2 }}</td>
+                </tr>
+
+                <!-- Actividades de Financiamiento -->
+                <tr class="table-primary">
+                    <td colspan="3"><strong>Flujos de efectivo provenientes de actividades de financiamiento</strong></td>
+                </tr>
+                <tr>
+                    <td>Inversiones realizadas por el propietario</td>
+                    <td class="text-end">{{ capital|floatformat:2 }}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Retiros del propietario</td>
+                    <td class="text-end">({{ retiros|floatformat:2 }})</td>
+                    <td></td>
+                </tr>
+                <tr class="table-success fw-bold">
+                    <td>Efectivo neto proporcionado por las actividades de financiamiento</td>
+                    <td colspan="2" class="text-end">{{ efectivo_neto_actividades_financiamiento|floatformat:2 }}</td>
+                </tr>
+
+                <!-- Incremento Neto de Efectivo -->
+                <tr class="table-info fw-bold">
+                    <td>Incremento neto en efectivo</td>
+                    <td colspan="2" class="text-end">{{ incremento_neto_efectivo|floatformat:2 }}</td>
+                </tr>
+
+                <!-- Saldos de Efectivo -->
+                <tr class="table-secondary">
+                    <td>Saldo de efectivo, 1 de {{ mes_seleccionado }} de {{ año_seleccionado }}</td>
+                    <td colspan="2" class="text-end">{{ efectivo_saldo_meses_anteriores.saldo_deudor|floatformat:2 }}</td>
+                </tr>
+                <tr class="table-secondary">
+                    <td>Saldo de efectivo, {{ fecha_ultima_transaccion|date:"F d, Y" }}</td>
+                    <td colspan="2" class="text-end">{{ saldo_efectivo_ultimo_dia_mes|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center mt-4">
+        No hay datos disponibles para el mes y año seleccionados.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

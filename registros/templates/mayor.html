@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Mayor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <i class="material-icons me-2">edit_calendar</i>
+            <h2 class="card-title mb-0">Mayorización de Cuenta</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="" class="mb-4">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="tipo-cuenta">Selecciona el tipo de cuenta:</label>
+                        <select id="tipo-cuenta" name="tipo_cuenta" class="form-control">
+                            <option value="">Seleccione un tipo de cuenta...</option>
+                            {% for c in cuentas %}
+                            <option value="{{ c.id_cuenta }}" {% if c.id_cuenta == cuenta_seleccionada %}selected{% endif %}>{{ c.nombre_cuenta }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="mes">Selecciona el mes:</label>
+                        <select id="mes" name="mes" class="form-control">
+                            <option value="">Seleccione el mes</option>
+                            {% for m in meses %}
+                            <option value="{{ m.0 }}" {% if m.0 == mes_seleccionado %}selected{% endif %}>{{ m.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="año">Ingrese el año:</label>
+                        <input type="number" id="año" name="año" class="form-control" 
+                               value="{{ año_seleccionado }}" placeholder="Ejemplo: 2025" 
+                               min="2000" max="2100" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Aceptar</button>
+            </form>
+        </div>
+    </div>
+
+    {% if transacciones_debe or transacciones_haber %}
+    <div class="card mt-4 shadow">
+        <div class="card-header bg-secondary text-white d-flex align-items-center">
+            <i class="material-icons me-2">account_balance</i>
+            <h3 class="card-title mb-0">{{ nombre_cuenta }}</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="text-center">Debe</h4>
+                    <table class="table table-hover table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Debe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in transacciones_debe %}
+                            <tr>
+                                <td>{{ t.transaccion.fecha_transaccion }}</td>
+                                <td class="text-right">{{ t.monto|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td><strong>Total Debe</strong></td>
+                                <td class="text-right">{{ total_debe|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="col-md-6">
+                    <h4 class="text-center">Haber</h4>
+                    <table class="table table-hover table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Haber</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in transacciones_haber %}
+                            <tr>
+                                <td>{{ t.transaccion.fecha_transaccion }}</td>
+                                <td class="text-right">{{ t.monto|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td><strong>Total Haber</strong></td>
+                                <td class="text-right">{{ total_haber|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mostrar el saldo deudor fuera de las tablas -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <tr style="background-color: #f5bd56c0;"> 
+                    {% if saldo_deudor == 0 and saldo_acreedor == 0 %}
+                    <td><strong>Saldo</strong></td>
+                    <td class="text-right">0.00</td>
+                    <td><strong>Saldo</strong></td>
+                    <td class="text-right">0.00</td>
+                    {% elif saldo_deudor > saldo_acreedor %}
+                        <td><strong>Saldo Deudor</strong></td>
+                        <td class="text-right">{{ saldo_deudor|floatformat:2 }}</td>
+                        <td></td>
+                        <td></td>
+                    {% elif saldo_acreedor > saldo_deudor %}
+                        <td></td>
+                        <td></td>
+                        <td><strong>Saldo Acreedor</strong></td>
+                        <td class="text-right">{{ saldo_acreedor|floatformat:2 }}</td>
+                    {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center mt-4">
+        No hay transacciones disponibles para la cuenta seleccionada.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
